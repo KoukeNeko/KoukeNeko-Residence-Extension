@@ -29,7 +29,30 @@ public class SelectionListener implements Listener {
     public SelectionListener(KoukeNekoResidenceExtension plugin) {
         this.plugin = plugin;
         this.bossBarManager = plugin.getBossBarManager();
-        this.selectionManager = Residence.getInstance().getSelectionManager();
+        
+        // 增加更多的日誌信息來偵錯 Residence 插件的加載問題
+        plugin.getLogger().info("[SelectionListener] 嘗試獲取 Residence 實例...");
+        try {
+            Object residenceInstance = Residence.getInstance();
+            if (residenceInstance == null) {
+                plugin.getLogger().severe("[SelectionListener] Residence.getInstance() 返回 null！");
+                throw new RuntimeException("Residence實例為空");
+            }
+            plugin.getLogger().info("[SelectionListener] 成功獲取 Residence 實例: " + residenceInstance);
+            
+            // 嘗試獲取選擇管理器
+            SelectionManager selManager = Residence.getInstance().getSelectionManager();
+            if (selManager == null) {
+                plugin.getLogger().severe("[SelectionListener] 無法獲取 SelectionManager！");
+                throw new RuntimeException("SelectionManager為空");
+            }
+            this.selectionManager = selManager;
+            plugin.getLogger().info("[SelectionListener] 成功獲取 SelectionManager: " + selectionManager);
+        } catch (Exception e) {
+            plugin.getLogger().severe("[SelectionListener] 初始化時發生錯誤: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("無法初始化 SelectionListener: " + e.getMessage(), e);
+        }
         
         // 啟動定時更新任務，更新所有正在選擇的玩家的 BossBar
         int updateInterval = plugin.getConfig().getInt("boss-bar.update-interval", 5);

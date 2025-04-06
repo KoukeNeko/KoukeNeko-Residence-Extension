@@ -20,6 +20,12 @@ public final class KoukeNekoResidenceExtension extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // 延遲加載，確保 Residence 先完全加載
+        getLogger().info("延遲 20 ticks 後啟動插件，確保其他插件已完全加載...");
+        Bukkit.getScheduler().runTaskLater(this, () -> enablePlugin(), 20L);
+    }
+    
+    private void enablePlugin() {
         try {
             // 保存默認配置
             saveDefaultConfig();
@@ -27,9 +33,23 @@ public final class KoukeNekoResidenceExtension extends JavaPlugin {
             getLogger().info("===== KoukeNeko Residence Extension 啟動中 =====");
             
             // 檢查領地插件
+            getLogger().info("正在檢查 Residence 插件...");
+            
+            // 列出所有已載入的插件，用於偵錯
+            getLogger().info("服務器上已安裝的插件：");
+            for (Plugin plugin : getServer().getPluginManager().getPlugins()) {
+                getLogger().info(" - " + plugin.getName() + " (" + plugin.getDescription().getVersion() + ")");
+            }
+            
             Plugin resPlug = getServer().getPluginManager().getPlugin("Residence");
-            if (resPlug == null || !resPlug.isEnabled()) {
-                getLogger().severe("未找到 Residence 插件或未啟用！本插件將被禁用。");
+            if (resPlug == null) {
+                getLogger().severe("未找到 Residence 插件！本插件將被禁用。");
+                getServer().getPluginManager().disablePlugin(this);
+                return;
+            }
+            
+            if (!resPlug.isEnabled()) {
+                getLogger().severe("Residence 插件已安裝但未啟用！本插件將被禁用。");
                 getServer().getPluginManager().disablePlugin(this);
                 return;
             }
@@ -90,6 +110,7 @@ public final class KoukeNekoResidenceExtension extends JavaPlugin {
         } catch (Exception e) {
             getLogger().severe("插件啟動時發生錯誤: " + e.getMessage());
             e.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
         }
     }
 

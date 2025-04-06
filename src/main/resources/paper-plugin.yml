@@ -11,18 +11,3 @@ dependencies:
     Residence:
       required: true
       load: BEFORE
-permissions:
-  koukeneko.admin:
-    description: Allow use of all administrative commands
-    default: op
-commands:
-  knres:
-    description: Main plugin command
-    usage: /knres reload
-    permission: koukeneko.admin
-    aliases: [koukenekorex, krex]
-  kntest:
-    description: Test commands for debugging
-    usage: /kntest bossbar
-    permission: koukeneko.admin
-    aliases: [knrtest]
