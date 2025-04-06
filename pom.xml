@@ -9,14 +9,16 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>koukeneko-residence-extension</name>
+    <name>KoukeNeko-Residence-Extension</name>
+    <description>A Residence plugin extension that shows a BossBar with selection info</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
+        <finalName>${project.name}-${project.version}</finalName>
         <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
@@ -26,7 +28,13 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <failOnError>false</failOnError>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -38,6 +46,9 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -59,14 +70,33 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.4-R0.1-SNAPSHOT</version>
+            <version>1.20.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+        <!-- Residence 插件依賴 (放在本地 lib 目錄) -->
+        <dependency>
+            <groupId>com.bekvon</groupId>
+            <artifactId>residence-api</artifactId>
+            <version>5.1.7.3</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/Residence5.1.7.3.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.Zrips</groupId>
+            <artifactId>CMILib</artifactId>
+            <version>1.5.4.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/CMILib1.5.4.1.jar</systemPath>
         </dependency>
     </dependencies>
 </project>

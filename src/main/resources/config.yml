@@ -1,1 +1,16 @@
 prefix: "&7[&e&l領地&6&l系統&7]&f" # 訊息前綴
+
+# 領地選擇 BossBar 設定
+boss-bar:
+  enabled: true
+  title: "&e領地選擇: &b{size} &6區塊 &7- &a花費: &2${cost}"
+  color: YELLOW # 顏色: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+  style: SOLID # 樣式: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+  update-interval: 5 # 更新間隔 (ticks)
+  
+# 訊息設定
+messages:
+  show-selection-updated: true # 是否在聊天中顯示選擇更新的訊息
+  selection-updated: "&e已更新選擇範圍，大小: &b{size} &e區塊，花費: &a${cost}"
+  selection-too-large: "&c選擇範圍過大！最大允許: &e{max} &c區塊"
+  no-permission: "&c你沒有權限執行此操作！"

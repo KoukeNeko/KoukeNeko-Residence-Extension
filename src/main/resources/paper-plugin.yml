@@ -1,4 +1,28 @@
 name: KoukeNeko-Residence-Extension
 version: '1.0-SNAPSHOT'
 main: dev.doeshing.koukeNekoResidenceExtension.KoukeNekoResidenceExtension
-api-version: '1.21'
+api-version: '1.20'
+load: STARTUP
+description: 'Residence extension for visual BossBar feedback'
+authors: [doeshing, KoukeNeko]
+website: https://github.com/doeshing
+dependencies:
+  server:
+    Residence:
+      required: true
+      load: BEFORE
+permissions:
+  koukeneko.admin:
+    description: Allow use of all administrative commands
+    default: op
+commands:
+  knres:
+    description: Main plugin command
+    usage: /knres reload
+    permission: koukeneko.admin
+    aliases: [koukenekorex, krex]
+  kntest:
+    description: Test commands for debugging
+    usage: /kntest bossbar
+    permission: koukeneko.admin
+    aliases: [knrtest]
