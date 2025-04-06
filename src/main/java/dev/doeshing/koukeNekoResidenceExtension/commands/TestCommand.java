@@ -38,14 +38,11 @@ public class TestCommand implements CommandExecutor, TabCompleter {
         // 處理命令
         if (args.length > 0 && args[0].equalsIgnoreCase("bossbar")) {
             // 測試 BossBar
-            plugin.getLogger().info("玩家 " + player.getName() + " 執行了 BossBar 測試命令");
-            player.sendMessage("§7[Debug] 執行 BossBar 測試命令...");
-            
             // 呼叫主類中的測試方法
             plugin.testBossBar(player);
             
             // 發送測試完成訊息
-            plugin.getMessageManager().sendMessage(player, "&a測試 BossBar 已顯示！如果您沒有看到 BossBar，請檢查控制台錯誤訊息。");
+            plugin.getMessageManager().sendMessage(player, "&a測試 BossBar 已顯示！");
         } else {
             // 顯示用法
             plugin.getMessageManager().sendMessage(player, "&c用法: /" + label + " bossbar - 測試顯示 BossBar");

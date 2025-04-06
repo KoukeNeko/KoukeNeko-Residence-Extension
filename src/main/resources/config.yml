@@ -5,8 +5,9 @@ boss-bar:
   enabled: true
   title: "&e領地選擇: &b{size} &6區塊 &7- &a花費: &2${cost}"
   color: YELLOW # 顏色: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
-  style: SOLID # 樣式: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
-  update-interval: 5 # 更新間隔 (ticks)
+  style: SEGMENTED_6 # 樣式: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+  auto-hide: true # 是否自動隱藏 BossBar
+  display-seconds: 5 # BossBar 顯示秒數，長時間不會自動隱藏
   
 # 訊息設定
 messages:

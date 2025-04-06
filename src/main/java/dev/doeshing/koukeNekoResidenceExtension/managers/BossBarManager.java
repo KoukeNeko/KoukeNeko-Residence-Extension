@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 管理玩家領地選擇時的 BossBar 顯示
@@ -20,15 +21,17 @@ public class BossBarManager {
 
     private final KoukeNekoResidenceExtension plugin;
     private final Map<UUID, BossBar> playerBossBars = new HashMap<>();
+    private final Map<UUID, Integer> autoHideTasks = new ConcurrentHashMap<>();
     
     private BarColor barColor;
     private BarStyle barStyle;
     private String barTitle;
+    private boolean autoHide;
+    private int displaySeconds;
 
     public BossBarManager(KoukeNekoResidenceExtension plugin) {
         this.plugin = plugin;
         loadConfig();
-        plugin.getLogger().info("[BossBarManager] Initialized with color: " + barColor + ", style: " + barStyle);
     }
     
     /**
@@ -38,7 +41,6 @@ public class BossBarManager {
         // 讀取 BossBar 顏色
         try {
             this.barColor = BarColor.valueOf(plugin.getConfig().getString("boss-bar.color", "YELLOW"));
-            plugin.getLogger().info("[BossBarManager] Loaded bar color: " + barColor);
         } catch (IllegalArgumentException e) {
             plugin.getLogger().warning("無效的 BossBar 顏色設定，使用預設值 YELLOW");
             this.barColor = BarColor.YELLOW;
@@ -47,7 +49,6 @@ public class BossBarManager {
         // 讀取 BossBar 樣式
         try {
             this.barStyle = BarStyle.valueOf(plugin.getConfig().getString("boss-bar.style", "SOLID"));
-            plugin.getLogger().info("[BossBarManager] Loaded bar style: " + barStyle);
         } catch (IllegalArgumentException e) {
             plugin.getLogger().warning("無效的 BossBar 樣式設定，使用預設值 SOLID");
             this.barStyle = BarStyle.SOLID;
@@ -55,7 +56,16 @@ public class BossBarManager {
         
         // 讀取 BossBar 標題格式
         this.barTitle = plugin.getConfig().getString("boss-bar.title", "&e領地選擇: &b{size} &6區塊 &7- &a花費: &2${cost}");
-        plugin.getLogger().info("[BossBarManager] Loaded bar title format: " + barTitle);
+        
+        // 讀取自動隱藏設定
+        this.autoHide = plugin.getConfig().getBoolean("boss-bar.auto-hide", true);
+        this.displaySeconds = plugin.getConfig().getInt("boss-bar.display-seconds", 5);
+        
+        // 預防無效的設定
+        if (this.displaySeconds <= 0) {
+            this.displaySeconds = 5;
+            plugin.getLogger().warning("BossBar 顯示秒數必須大於 0，已重設為 5 秒");
+        }
     }
     
     /**
@@ -69,15 +79,8 @@ public class BossBarManager {
         UUID playerId = player.getUniqueId();
         BossBar bossBar = playerBossBars.get(playerId);
         
-        plugin.getLogger().info("[BossBarManager] Updating BossBar for player: " + player.getName() + 
-                              " (size: " + size + ", cost: " + cost + ")");
-        player.sendMessage("§7[Debug] Updating your BossBar... (size: " + size + ", cost: " + cost + ")");
-        
         // 如果玩家沒有 BossBar，則創建一個
         if (bossBar == null) {
-            plugin.getLogger().info("[BossBarManager] Creating new BossBar for player: " + player.getName());
-            player.sendMessage("§7[Debug] Creating new BossBar...");
-            
             bossBar = Bukkit.createBossBar(
                 formatTitle(size, cost),
                 barColor,
@@ -85,13 +88,8 @@ public class BossBarManager {
             );
             playerBossBars.put(playerId, bossBar);
             bossBar.addPlayer(player);
-            
-            plugin.getLogger().info("[BossBarManager] New BossBar created and added to player");
-            player.sendMessage("§7[Debug] BossBar created and added");
         } else {
             // 更新現有 BossBar
-            plugin.getLogger().info("[BossBarManager] Updating existing BossBar title for player: " + player.getName());
-            player.sendMessage("§7[Debug] Updating existing BossBar...");
             bossBar.setTitle(formatTitle(size, cost));
         }
         
@@ -101,8 +99,22 @@ public class BossBarManager {
         // 確保 BossBar 是可見的
         bossBar.setVisible(true);
         
-        plugin.getLogger().info("[BossBarManager] BossBar update completed for player: " + player.getName());
-        player.sendMessage("§7[Debug] BossBar update completed");
+        // 處理自動隱藏
+        if (autoHide) {
+            // 先取消與玩家相關的任何已存在的定時任務
+            Integer existingTaskId = autoHideTasks.remove(playerId);
+            if (existingTaskId != null) {
+                Bukkit.getScheduler().cancelTask(existingTaskId);
+            }
+            
+            // 創建新的定時任務來隱藏 BossBar
+            int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+                removeBossBar(player);
+                autoHideTasks.remove(playerId);
+            }, displaySeconds * 20L); // 轉換為 tick (20 ticks = 1 秒)
+            
+            autoHideTasks.put(playerId, taskId);
+        }
     }
     
     /**
@@ -111,18 +123,19 @@ public class BossBarManager {
      * @param player 玩家
      */
     public void removeBossBar(Player player) {
-        plugin.getLogger().info("[BossBarManager] Attempting to remove BossBar for player: " + player.getName());
-        player.sendMessage("§7[Debug] Removing your BossBar...");
+        UUID playerId = player.getUniqueId();
         
-        BossBar bossBar = playerBossBars.remove(player.getUniqueId());
+        // 取消相關的定時任務
+        Integer taskId = autoHideTasks.remove(playerId);
+        if (taskId != null) {
+            Bukkit.getScheduler().cancelTask(taskId);
+        }
+        
+        // 移除 BossBar
+        BossBar bossBar = playerBossBars.remove(playerId);
         if (bossBar != null) {
             bossBar.removePlayer(player);
             bossBar.setVisible(false);
-            plugin.getLogger().info("[BossBarManager] BossBar successfully removed for player: " + player.getName());
-            player.sendMessage("§7[Debug] BossBar removed successfully");
-        } else {
-            plugin.getLogger().info("[BossBarManager] No BossBar found to remove for player: " + player.getName());
-            player.sendMessage("§7[Debug] No BossBar found to remove");
         }
     }
     
@@ -139,7 +152,6 @@ public class BossBarManager {
             .replace("{cost}", String.format("%.2f", cost))
             .replace("&", "§"); // 轉換顏色代碼
         
-        plugin.getLogger().info("[BossBarManager] Formatted title: " + title);
         return title;
     }
     
@@ -148,14 +160,17 @@ public class BossBarManager {
      * 用於插件關閉時清理
      */
     public void removeAllBossBars() {
-        plugin.getLogger().info("[BossBarManager] Removing all BossBars...");
+        // 取消所有定時任務
+        for (Integer taskId : autoHideTasks.values()) {
+            Bukkit.getScheduler().cancelTask(taskId);
+        }
+        autoHideTasks.clear();
         
+        // 移除所有 BossBar
         for (BossBar bossBar : playerBossBars.values()) {
             bossBar.setVisible(false);
             bossBar.removeAll();
         }
         playerBossBars.clear();
-        
-        plugin.getLogger().info("[BossBarManager] All BossBars have been removed");
     }
 }

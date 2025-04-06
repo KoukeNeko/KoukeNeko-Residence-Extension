@@ -21,7 +21,6 @@ public final class KoukeNekoResidenceExtension extends JavaPlugin {
     @Override
     public void onEnable() {
         // 延遲加載，確保 Residence 先完全加載
-        getLogger().info("延遲 20 ticks 後啟動插件，確保其他插件已完全加載...");
         Bukkit.getScheduler().runTaskLater(this, () -> enablePlugin(), 20L);
     }
     
@@ -33,13 +32,6 @@ public final class KoukeNekoResidenceExtension extends JavaPlugin {
             getLogger().info("===== KoukeNeko Residence Extension 啟動中 =====");
             
             // 檢查領地插件
-            getLogger().info("正在檢查 Residence 插件...");
-            
-            // 列出所有已載入的插件，用於偵錯
-            getLogger().info("服務器上已安裝的插件：");
-            for (Plugin plugin : getServer().getPluginManager().getPlugins()) {
-                getLogger().info(" - " + plugin.getName() + " (" + plugin.getDescription().getVersion() + ")");
-            }
             
             Plugin resPlug = getServer().getPluginManager().getPlugin("Residence");
             if (resPlug == null) {
@@ -91,19 +83,6 @@ public final class KoukeNekoResidenceExtension extends JavaPlugin {
                 "/kntest bossbar - 測試 BossBar 顯示",
                 "knrtest");
             getLogger().info("測試命令已註冊");
-            
-            // 在下一個 Tick 發送測試消息以確保所有其他插件已加載完成
-            Bukkit.getScheduler().runTaskLater(this, () -> {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    player.sendMessage("§7[Debug] KoukeNeko Residence Extension 已載入，等待您使用選擇工具...");
-                    player.sendMessage("§7[Debug] 您也可以使用 /kntest bossbar 命令來測試 BossBar 是否正常工作");
-                    getLogger().info("發送測試消息給玩家: " + player.getName());
-                }
-                
-                // 檢查並記錄目前已註冊的事件
-                getLogger().info("SelectionListener 是否已註冊: " + (HandlerList.getRegisteredListeners(this).stream()
-                    .anyMatch(handler -> handler.getListener() instanceof SelectionListener)));
-            }, 20L);
             
             getLogger().info("KoukeNeko-Residence-Extension 插件已成功啟用！");
             getLogger().info("==============================================");
@@ -170,16 +149,12 @@ public final class KoukeNekoResidenceExtension extends JavaPlugin {
      * 添加一個測試方法，用於檢查和添加 BossBar
      */
     public void testBossBar(Player player) {
-        getLogger().info("執行 BossBar 測試，玩家: " + player.getName());
-        player.sendMessage("§7[Debug] 正在測試 BossBar...");
-        
         try {
-            // 直接嘗試添加一個測試 BossBar
+            // 直接添加一個測試 BossBar
             bossBarManager.updateBossBar(player, 10, 1000.0);
-            player.sendMessage("§7[Debug] 測試 BossBar 已添加，顯示大小為 10，費用為 1000");
         } catch (Exception e) {
             getLogger().severe("測試 BossBar 時發生錯誤: " + e.getMessage());
-            player.sendMessage("§c[錯誤] 測試 BossBar 時發生錯誤: " + e.getMessage());
+            messageManager.sendMessage(player, "&c測試 BossBar 時發生錯誤，請查看控制台日誌");
             e.printStackTrace();
         }
     }
