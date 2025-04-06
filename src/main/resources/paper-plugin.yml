@@ -1,0 +1,4 @@
+name: KoukeNeko-Residence-Extension
+version: '1.0-SNAPSHOT'
+main: dev.doeshing.koukeNekoResidenceExtension.KoukeNekoResidenceExtension
+api-version: '1.21'
